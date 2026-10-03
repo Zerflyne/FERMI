@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
@@ -58,7 +62,9 @@ jobs:
 
       - name: Runtime (llama.cpp)
         shell: bash
-        run: JOBS=4 runtime/build.sh "$PWD/llama.cpp"
+        run: |
+          set -o pipefail
+          JOBS=4 runtime/build.sh "$PWD/llama.cpp" 2>&1 | tee runtime.log
 
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
@@ -67,9 +73,22 @@ jobs:
         with: { workspaces: src-tauri }
 
       - name: App
+        shell: bash
         run: |
-          npm ci
-          npx tauri build --bundles ${{ matrix.bundles }}
+          set -o pipefail
+          npm ci 2>&1 | tee app.log
+          npx tauri build --bundles ${{ matrix.bundles }} 2>&1 | tee -a app.log
+
+      # the end of the failing log as an annotation: readable on the run page without signing in
+      - name: Report failure
+        if: failure()
+        shell: bash
+        run: |
+          for f in runtime.log app.log; do
+            [ -f "$f" ] || continue
+            msg=$(grep -v '^\s*$' "$f" | tail -n 60 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=$f::$msg"
+          done
 
       - uses: actions/upload-artifact@v4
         with:
