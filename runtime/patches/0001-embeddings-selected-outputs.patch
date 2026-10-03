@@ -1,0 +1,16 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 96b5464..a1a714e 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -1731,8 +1731,9 @@ int llama_context::decode(const llama_batch_ext & batch_inp) {
+ 
+     const int64_t n_vocab = vocab.n_tokens();
+ 
+-    // when computing embeddings, all tokens are output
+-    const bool output_all   = cparams.embeddings;
++    // when computing pooled embeddings, all tokens are output; per-token embeddings (pooling none) follow the
++    // batch's output flags, like logits (FERMI reads the hidden states of a few positions only)
++    const bool output_all   = cparams.embeddings && cparams.pooling_type != LLAMA_POOLING_TYPE_NONE;
+     const bool has_samplers = !sampling.samplers.empty();
+ 
+     const uint32_t n_seq_max = cparams.kv_unified ? LLAMA_MAX_SEQ : cparams.n_seq_max;

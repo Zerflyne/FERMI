@@ -1,0 +1,40 @@
+[package]
+name = "fermi-app"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+license = "Apache-2.0"
+description = "FERMI: local classifier with typed answers and probabilities, desktop app"
+authors = ["Zerflyne"]
+
+[[bin]]
+name = "fermi-app"
+path = "src/main.rs"
+
+[lib]
+name = "fermi_app_lib"
+crate-type = ["lib"]
+path = "src/lib.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }   # keeps the order of options and fields, like Python
+libloading = "0.8"                  # the llama.cpp runtime is loaded at run time from the app's runtime folder
+tiny_http = "0.12"                  # the app's API and the public API server
+ureq = { version = "2", default-features = false, features = ["tls"] }   # model downloads (rustls: no OpenSSL)
+csv = "1"
+sha2 = "0.10"
+libm = "0.2"                        # erf for the head's GELU
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+
+[profile.release]
+codegen-units = 4
+lto = "thin"
+strip = true
