@@ -14,7 +14,7 @@ use sha2::{Digest, Sha256};
 
 use super::fermi::Fermi;
 use super::runtime::{Device, Runtime};
-use super::{log, now, Settings};
+use super::{log, Settings};
 
 /// What the app can download. Files on huggingface.co/<repo>/resolve/<revision>/<file>.
 pub struct CatalogEntry {
